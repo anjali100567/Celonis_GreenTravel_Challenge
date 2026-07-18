@@ -1,5 +1,6 @@
 *.csv
 !submission.csv
+!submission (3).csv
 __pycache__/
 *.pyc
 .env
