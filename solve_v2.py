@@ -6,18 +6,16 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import roc_auc_score, f1_score, precision_score, recall_score, confusion_matrix
 from sklearn.calibration import calibration_curve
 
-UP = '/mnt/user-data/uploads'
 SEED = 42
 N_FOLDS = 5
 
 # ---------- Load ----------
-pub_trip = pd.read_csv(f'{UP}/public_trip_data.csv')
-priv_trip = pd.read_csv(f'{UP}/private_trip_data.csv')
-pub_attr = pd.read_csv(f'{UP}/public_trip_event_attributes.csv')
-priv_attr = pd.read_csv(f'{UP}/private_trip_event_attributes.csv')
-pub_log = pd.read_csv(f'{UP}/public_trip_event_log.csv', parse_dates=['EventTimestamp'])
-priv_log = pd.read_csv(f'{UP}/private_trip_event_log.csv', parse_dates=['EventTimestamp'])
-sample_sub = pd.read_csv(f'{UP}/sample_submission.csv')
+pub_trip = pd.read_csv('public_trip_data.csv')
+priv_trip = pd.read_csv('private_trip_data.csv')
+pub_attr = pd.read_csv('public_trip_event_attributes.csv')
+priv_attr = pd.read_csv('private_trip_event_attributes.csv')
+pub_log = pd.read_csv('public_trip_event_log.csv', parse_dates=['EventTimestamp'])
+priv_log = pd.read_csv('private_trip_event_log.csv', parse_dates=['EventTimestamp'])
 
 BANNED = ['Departure_CO2e', 'Return_CO2e', 'Hotel_CO2e', 'Spend_CO2e', 'TotalCO2e']
 
@@ -94,7 +92,7 @@ for c in log_num_cols:
     X_pub[c] = X_pub[c].fillna(0)
     X_priv[c] = X_priv[c].fillna(0)
 
-cat_cols = X_pub.select_dtypes(include=['object', 'str', 'category']).columns.tolist()
+cat_cols = X_pub.select_dtypes(include=['object', 'category']).columns.tolist()
 for c in cat_cols:
     X_pub[c] = X_pub[c].astype(str).fillna('NA').astype('category')
     X_priv[c] = X_priv[c].astype(str).fillna('NA').astype('category')
@@ -192,7 +190,7 @@ for mp, fp in zip(mean_pred, frac_pos):
 final_priv_pred = 0.5 * priv_pred_lgb + 0.5 * priv_pred_cat
 
 sub = pd.DataFrame({'TripID': X_priv.index, 'HighCarbon': final_priv_pred})
-sub = sample_sub[['TripID']].merge(sub, on='TripID', how='left')
-sub.to_csv('/home/claude/greentravel/submission.csv', index=False)
-print('\nSaved submission.csv. Shape:', sub.shape)
+sub = sub.sort_values('TripID').reset_index(drop=True)
+sub.to_csv('submission_v2.csv', index=False)
+print('\nSaved submission_v2.csv. Shape:', sub.shape)
 print(sub.describe())
